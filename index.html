@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Calculadora de Custos</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" sizes="512x512" href="icons/icon-512.png">
+  <style>
+    :root{ --bg:#0f172a; --panel:#111827; --card:#1f2937; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(120deg,var(--bg),#0b1222);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+    .wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    h1{font-size:clamp(20px,4vw,28px);margin:8px 0}
+    .card{background:var(--card);border:1px solid #223046;border-radius:14px;padding:14px;box-shadow:0 10px 20px rgb(0 0 0 / .25);margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px}
+    label{font-size:14px;color:var(--muted)}
+    input[type="text"], input[readonly]{
+      width:100%;padding:12px 12px;border:1px solid #2a3a4f;border-radius:10px;background:#0f1b2a;color:#e5e7eb;
+      font-size:16px;outline:none;
+    }
+    input::placeholder{color:#6b7b8d}
+    .out{background:#0b1522}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hint{font-size:12px;color:var(--muted);margin-top:2px}
+    .footer{margin-top:14px;font-size:12px;color:var(--muted)}
+    .pill{display:inline-block;background:#0c2235;border:1px solid #1e3a5f;color:#bcd2eb;padding:4px 8px;border-radius:999px;font-size:12px}
+    .accent{color:var(--accent);font-weight:700}
+    .btn{width:100%;margin-top:8px;padding:12px;border-radius:10px;border:1px solid #244a34;background:#11251a;color:#c6f6d5;font-weight:700}
+    .btn-secondary{width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:#e5e7eb;font-size:14px}
+    .photo-preview{margin-top:8px;display:flex;align-items:center;gap:10px}
+    .photo-preview img{max-width:96px;max-height:96px;border-radius:10px;border:1px solid #1f2933;object-fit:cover}
+    .photo-preview span{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Calculadora de Custos</h1>
+      <span class="pill">Offline PWA</span>
+    </header>
+
+    <div class="card">
+      <div class="grid">
+        <!-- Entradas -->
+        <div>
+          <label for="fob">FOB</label>
+          <input id="fob" type="text" inputmode="decimal" placeholder="ex.: 3,50" />
+          <div class="hint">Use vírgula ou ponto</div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="conv">CONVERSÃO</label>
+            <input id="conv" type="text" inputmode="decimal" placeholder="ex.: 0,72" />
+          </div>
+          <div>
+            <label for="fator">FATOR</label>
+            <input id="fator" type="text" inputmode="decimal" placeholder="ex.: 1,60" />
+          </div>
+        </div>
+
+        <div>
+          <label for="pdv">PDV</label>
+          <input id="pdv" type="text" inputmode="decimal" placeholder="ex.: 14,99" />
+        </div>
+
+        <div>
+          <label for="impostos">IMPOSTOS (%)</label>
+          <input id="impostos" type="text" inputmode="decimal" placeholder="ex.: 28,72" />
+          <div class="hint">Informe o percentual total de impostos sobre o PDV</div>
+        </div>
+
+        <!-- Saídas -->
+        <div class="row">
+          <div>
+            <label for="custo">CUSTO (FOB × CONVERSÃO × FATOR)</label>
+            <input id="custo" class="out" type="text" readonly />
+          </div>
+          <div>
+            <label for="final">CUSTO FINAL</label>
+            <input id="final" class="out" type="text" readonly />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="margem">MARGEM</label>
+            <input id="margem" class="out" type="text" readonly />
+          </div>
+        </div>
+
+        <button id="clear" class="btn">Limpar</button>
+
+        <div class="footer">
+          Regras: <span class="accent">CUSTO</span> 2 casas | <span class="accent">CUSTO FINAL</span> 4 casas | <span class="accent">MARGEM</span> em % (2 casas).<br>
+          Os valores são salvos localmente para você continuar depois.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Foto do produto</label>
+          <input id="fotoInput" type="file" accept="image/*" capture="environment" style="display:none" />
+          <button id="btnFoto" class="btn-secondary">📷 Tirar/selecionar foto</button>
+          <div id="fotoPreview" class="photo-preview" style="display:none;">
+            <img id="fotoThumb" alt="Prévia da foto" />
+            <span>Foto anexada. Será enviada junto com o cálculo (quando suportado).</span>
+          </div>
+        </div>
+
+        <div>
+          <button id="btnWhats" class="btn">📤 Enviar cálculo para WhatsApp</button>
+          <div class="hint">
+            O app monta uma mensagem com FOB, CONVERSÃO, FATOR, CUSTO, PDV, IMPOSTOS, CUSTO FINAL e MARGEM.
+            Em celulares que suportam compartilhamento de arquivos pela Web, a foto vai junto.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Utilidades ---
+    const nf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const nf4 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    const nfPct = new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function toNum(v){
+      if(typeof v !== 'string') v = String(v ?? '');
+      v = v.trim().replace(/\./g,'').replace(',','.');
+      return v === '' || isNaN(Number(v)) ? NaN : Number(v);
+    }
+
+    function round(n, dec){
+      const f = Math.pow(10, dec);
+      return Math.round((n + Number.EPSILON) * f) / f;
+    }
+
+    // --- Campos ---
+    const fob = document.getElementById('fob');
+    const conv = document.getElementById('conv');
+    const fator = document.getElementById('fator');
+    const pdv = document.getElementById('pdv');
+    const impostos = document.getElementById('impostos');
+
+    const custo = document.getElementById('custo');
+    const finalC = document.getElementById('final');
+    const margem = document.getElementById('margem');
+
+    const fotoInput = document.getElementById('fotoInput');
+    const btnFoto = document.getElementById('btnFoto');
+    const fotoPreview = document.getElementById('fotoPreview');
+    const fotoThumb = document.getElementById('fotoThumb');
+    const btnWhats = document.getElementById('btnWhats');
+
+    let fotoFile = null;
+
+    // Restore
+    const SAVED = JSON.parse(localStorage.getItem('calc-custos-v5') || '{}');
+    ['fob','conv','fator','pdv','impostos'].forEach(id => {
+      if(SAVED[id]) document.getElementById(id).value = SAVED[id];
+    });
+
+    function save(){
+      const data = {
+        fob: fob.value,
+        conv: conv.value,
+        fator: fator.value,
+        pdv: pdv.value,
+        impostos: impostos.value
+      };
+      localStorage.setItem('calc-custos-v5', JSON.stringify(data));
+    }
+
+    // Cálculo + cores da margem
+    function recalc(){
+      save();
+
+      const vFOB = toNum(fob.value);
+      const vCONV = toNum(conv.value);
+      const vFATOR = toNum(fator.value);
+      const vPDV = toNum(pdv.value);
+      const vImpPerc = toNum(impostos.value); // ex.: 28,72 => 28.72
+
+      let vCusto = NaN, vFinal = NaN, vMarg = NaN;
+
+      if(!isNaN(vFOB) && !isNaN(vCONV) && !isNaN(vFATOR)){
+        vCusto = round(vFOB * vCONV * vFATOR, 2); // 2 casas
+      }
+
+      let vImpVal = NaN;
+      if(!isNaN(vPDV) && !isNaN(vImpPerc)){
+        const taxa = vImpPerc / 100; // fração
+        vImpVal = round(vPDV * taxa, 4); // valor monetário, 4 casas
+      }
+
+      if(!isNaN(vCusto) && !isNaN(vImpVal)){
+        vFinal = vCusto + vImpVal; // custo final = custo + (pdv * imposto%)
+      }
+
+      if(!isNaN(vPDV) && !isNaN(vFinal) && vFinal !== 0){
+        vMarg = vPDV / vFinal - 1;
+      }
+
+      custo.value  = isNaN(vCusto) ? '' : nf2.format(vCusto);
+      finalC.value = isNaN(vFinal) ? '' : nf4.format(vFinal);
+      margem.value = isNaN(vMarg)  ? '' : nfPct.format(vMarg);
+
+      // ---- Colorir o campo de margem ----
+      margem.style.color = '#fff';
+      margem.style.backgroundColor = '#0b1522'; // default
+
+      if (!isNaN(vMarg)) {
+        const perc = vMarg * 100; // %
+        if (perc >= 60) {
+          margem.style.backgroundColor = '#15803d'; // verde
+        } else if (perc >= 50 && perc < 60) {
+          margem.style.backgroundColor = '#ca8a04'; // amarelo
+        } else if (perc < 50) {
+          margem.style.backgroundColor = '#b91c1c'; // vermelho
+        }
+      }
+    }
+
+    [fob, conv, fator, pdv, impostos].forEach(el => el.addEventListener('input', recalc));
+    recalc();
+
+    document.getElementById('clear').addEventListener('click', () => {
+      [fob, conv, fator, pdv, impostos].forEach(el => el.value = '');
+      localStorage.removeItem('calc-custos-v5');
+      fotoFile = null;
+      fotoPreview.style.display = 'none';
+      recalc();
+    });
+
+    // Foto
+    btnFoto.addEventListener('click', () => {
+      fotoInput.click();
+    });
+
+    fotoInput.addEventListener('change', () => {
+      const file = fotoInput.files && fotoInput.files[0];
+      if(file){
+        fotoFile = file;
+        const url = URL.createObjectURL(file);
+        fotoThumb.src = url;
+        fotoPreview.style.display = 'flex';
+      } else {
+        fotoFile = null;
+        fotoPreview.style.display = 'none';
+      }
+    });
+
+    // Montar texto do cálculo
+    function buildCalcText(){
+      const linha = (label, val) => `${label}: ${val || '-'}`;
+      const txt = [
+        '📦 Cálculo de Produto',
+        linha('FOB', fob.value),
+        linha('CONVERSÃO', conv.value),
+        linha('FATOR', fator.value),
+        linha('CUSTO', custo.value),
+        linha('PDV', pdv.value),
+        linha('IMPOSTOS (%)', impostos.value),
+        linha('CUSTO FINAL', finalC.value),
+        linha('MARGEM', margem.value)
+      ].join('\n');
+      return txt;
+    }
+
+    // Enviar para WhatsApp
+    btnWhats.addEventListener('click', async () => {
+      const msg = buildCalcText();
+
+      // Tenta Web Share API com arquivo (se suportado)
+      if (navigator.share) {
+        try {
+          if (fotoFile && navigator.canShare && navigator.canShare({ files: [fotoFile] })) {
+            await navigator.share({
+              text: msg,
+              files: [fotoFile]
+            });
+            return;
+          } else {
+            await navigator.share({ text: msg });
+            return;
+          }
+        } catch (e) {
+          console.log('Share cancelado ou falhou, tentando wa.me', e);
+        }
+      }
+
+      // Fallback: abrir link do WhatsApp com texto (sem imagem)
+      const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      window.open(url, '_blank');
+    });
+
+    // PWA
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
