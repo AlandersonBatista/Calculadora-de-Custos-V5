@@ -8,301 +8,667 @@
   <meta name="theme-color" content="#0f172a">
   <link rel="icon" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" sizes="512x512" href="icons/icon-512.png">
+  <!-- jsPDF para gerar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    :root{ --bg:#0f172a; --panel:#111827; --card:#1f2937; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#1f2937; --muted:#94a3b8;
+      --text:#e5e7eb; --accent:#22c55e; --danger:#ef4444; --yellow:#facc15;
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(120deg,var(--bg),#0b1222);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-    .wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    h1{font-size:clamp(20px,4vw,28px);margin:8px 0}
-    .card{background:var(--card);border:1px solid #223046;border-radius:14px;padding:14px;box-shadow:0 10px 20px rgb(0 0 0 / .25);margin-bottom:16px}
-    .grid{display:grid;grid-template-columns:1fr;gap:10px}
-    label{font-size:14px;color:var(--muted)}
-    input[type="text"], input[readonly]{
-      width:100%;padding:12px 12px;border:1px solid #2a3a4f;border-radius:10px;background:#0f1b2a;color:#e5e7eb;
-      font-size:16px;outline:none;
+    body{
+      margin:0;
+      background:linear-gradient(120deg,var(--bg),#020617);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
     }
-    input::placeholder{color:#6b7b8d}
-    .out{background:#0b1522}
+    .wrap{max-width:720px;margin:0 auto;padding:16px 16px 64px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+    h1{font-size:clamp(20px,4vw,28px);margin:8px 0}
+    .pill{display:inline-block;background:#0c2235;border:1px solid #1e3a5f;color:#bcd2eb;
+      padding:4px 8px;border-radius:999px;font-size:12px}
+    .card{
+      background:var(--card);
+      border:1px solid #223046;
+      border-radius:14px;
+      padding:14px;
+      box-shadow:0 10px 20px rgb(0 0 0 / .25);
+      margin-bottom:16px;
+    }
+    .grid{display:grid;grid-template-columns:1fr;gap:10px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:14px;color:var(--muted);display:block;margin-bottom:4px}
+    input,textarea,button{
+      font-family:inherit;
+    }
+    input,textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #2a3a4f;
+      border-radius:10px;
+      background:#0f1b2a;
+      color:#e5e7eb;
+      font-size:15px;
+      outline:none;
+    }
+    input:focus,textarea:focus{
+      border-color:#60a5fa;
+      box-shadow:0 0 0 1px #1d4ed8;
+    }
+    input[readonly],textarea[readonly]{
+      background:#020617;
+      color:#cbd5f5;
+    }
+    input::placeholder,textarea::placeholder{color:#6b7b8d}
     .hint{font-size:12px;color:var(--muted);margin-top:2px}
-    .footer{margin-top:14px;font-size:12px;color:var(--muted)}
-    .pill{display:inline-block;background:#0c2235;border:1px solid #1e3a5f;color:#bcd2eb;padding:4px 8px;border-radius:999px;font-size:12px}
-    .accent{color:var(--accent);font-weight:700}
-    .btn{width:100%;margin-top:8px;padding:12px;border-radius:10px;border:1px solid #244a34;background:#11251a;color:#c6f6d5;font-weight:700}
-    .btn-secondary{width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:#e5e7eb;font-size:14px}
-    .photo-preview{margin-top:8px;display:flex;align-items:center;gap:10px}
-    .photo-preview img{max-width:96px;max-height:96px;border-radius:10px;border:1px solid #1f2933;object-fit:cover}
-    .photo-preview span{font-size:12px;color:var(--muted)}
+    .btn{
+      width:100%;
+      margin-top:8px;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #244a34;
+      background:#11251a;
+      color:#c6f6d5;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .btn-secondary{
+      width:100%;
+      margin-top:8px;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #334155;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .btn-danger{
+      width:100%;
+      margin-top:8px;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #7f1d1d;
+      background:#450a0a;
+      color:#fecaca;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .btn:disabled,.btn-secondary:disabled,.btn-danger:disabled{opacity:.5;cursor:not-allowed}
+    .margem-ok{
+      background:#022c22;
+      border-color:#16a34a;
+      color:#bbf7d0;
+    }
+    .margem-media{
+      background:#422006;
+      border-color:#facc15;
+      color:#fef3c7;
+    }
+    .margem-baixa{
+      background:#450a0a;
+      border-color:#ef4444;
+      color:#fee2e2;
+    }
+    .margem-ok::placeholder,
+    .margem-media::placeholder,
+    .margem-baixa::placeholder{
+      color:inherit;
+    }
+    .footer{margin-top:4px;font-size:11px;color:var(--muted);text-align:right}
+    .foto-preview{
+      width:100%;
+      max-height:220px;
+      object-fit:cover;
+      border-radius:10px;
+      border:1px solid #1f2937;
+      background:#020617;
+    }
+    .error{color:var(--danger);font-size:12px;margin-top:4px}
+    @media (min-width:768px){
+      .grid-2-cols{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>Calculadora de Custos</h1>
-      <span class="pill">Offline PWA</span>
+      <span class="pill">Produtos com foto • Offline</span>
     </header>
 
-    <div class="card">
-      <div class="grid">
-        <!-- Entradas -->
-        <div>
-          <label for="fob">FOB</label>
-          <input id="fob" type="text" inputmode="decimal" placeholder="ex.: 3,50" />
-          <div class="hint">Use vírgula ou ponto</div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label for="conv">CONVERSÃO</label>
-            <input id="conv" type="text" inputmode="decimal" placeholder="ex.: 0,72" />
-          </div>
-          <div>
-            <label for="fator">FATOR</label>
-            <input id="fator" type="text" inputmode="decimal" placeholder="ex.: 1,60" />
-          </div>
-        </div>
-
-        <div>
-          <label for="pdv">PDV</label>
-          <input id="pdv" type="text" inputmode="decimal" placeholder="ex.: 14,99" />
-        </div>
-
-        <div>
-          <label for="impostos">IMPOSTOS (%)</label>
-          <input id="impostos" type="text" inputmode="decimal" placeholder="ex.: 28,72" />
-          <div class="hint">Informe o percentual total de impostos sobre o PDV</div>
-        </div>
-
-        <!-- Saídas -->
-        <div class="row">
-          <div>
-            <label for="custo">CUSTO (FOB × CONVERSÃO × FATOR)</label>
-            <input id="custo" class="out" type="text" readonly />
-          </div>
-          <div>
-            <label for="final">CUSTO FINAL</label>
-            <input id="final" class="out" type="text" readonly />
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label for="margem">MARGEM</label>
-            <input id="margem" class="out" type="text" readonly />
-          </div>
-        </div>
-
-        <button id="clear" class="btn">Limpar</button>
-
-        <div class="footer">
-          Regras: <span class="accent">CUSTO</span> 2 casas | <span class="accent">CUSTO FINAL</span> 4 casas | <span class="accent">MARGEM</span> em % (2 casas).<br>
-          Os valores são salvos localmente para você continuar depois.
-        </div>
-      </div>
-    </div>
-
+    <!-- BLOCO FOTO + DADOS DO PRODUTO -->
     <div class="card">
       <div class="grid">
         <div>
           <label>Foto do produto</label>
-          <input id="fotoInput" type="file" accept="image/*" capture="environment" style="display:none" />
-          <button id="btnFoto" class="btn-secondary">📷 Tirar/selecionar foto</button>
-          <div id="fotoPreview" class="photo-preview" style="display:none;">
-            <img id="fotoThumb" alt="Prévia da foto" />
-            <span>Foto anexada. Será enviada junto com o cálculo (quando suportado).</span>
+          <input id="fotoInput" type="file" accept="image/*" capture="environment">
+          <div class="hint">Use a câmera para registrar o produto. A imagem será salva em tamanho reduzido neste aparelho.</div>
+        </div>
+        <div>
+          <img id="fotoPreview" class="foto-preview" alt="Prévia da foto do produto" style="display:none;">
+        </div>
+        <div>
+          <label for="nomeProduto">Nome do produto</label>
+          <input id="nomeProduto" type="text" placeholder="Ex.: Detergente XYZ 5 L">
+        </div>
+        <div>
+          <label for="detalhesProduto">Detalhes do produto</label>
+          <textarea id="detalhesProduto" rows="3" placeholder="Ex.: Caixa com 4 galões de 5 L (total 20 L). Peso bruto 22 kg."></textarea>
+        </div>
+        <div id="erroProduto" class="error"></div>
+      </div>
+    </div>
+
+    <!-- BLOCO CALCULADORA -->
+    <div class="card">
+      <div class="grid">
+        <div class="row">
+          <div>
+            <label for="fob">FOB</label>
+            <input id="fob" type="text" inputmode="decimal" placeholder="ex.: 3,50">
+          </div>
+          <div>
+            <label for="conversao">Conversão</label>
+            <input id="conversao" type="text" inputmode="decimal" placeholder="ex.: 0,72">
           </div>
         </div>
 
-        <div>
-          <button id="btnWhats" class="btn">📤 Enviar cálculo para WhatsApp</button>
-          <div class="hint">
-            O app monta uma mensagem com FOB, CONVERSÃO, FATOR, CUSTO, PDV, IMPOSTOS, CUSTO FINAL e MARGEM.
-            Em celulares que suportam compartilhamento de arquivos pela Web, a foto vai junto.
+        <div class="row">
+          <div>
+            <label for="fator">Fator</label>
+            <input id="fator" type="text" inputmode="decimal" placeholder="ex.: 1,60">
           </div>
+          <div>
+            <label for="custo">Custo</label>
+            <input id="custo" type="text" readonly placeholder="Cálculo: FOB × Conversão × Fator">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="pdv">PDV</label>
+            <input id="pdv" type="text" inputmode="decimal" placeholder="ex.: 14,99">
+          </div>
+          <div>
+            <label for="impostos">Impostos (%)</label>
+            <input id="impostos" type="text" inputmode="decimal" placeholder="ex.: 28,72">
+            <div class="hint">Digite o percentual de impostos aplicável a este produto.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="custoFinal">Custo final</label>
+            <input id="custoFinal" type="text" readonly placeholder="Cálculo: Custo + (PDV × Impostos%)">
+          </div>
+          <div>
+            <label for="margem">Margem (%)</label>
+            <input id="margem" type="text" readonly placeholder="Resultado em % com cor indicativa">
+          </div>
+        </div>
+
+        <button id="btnSalvarProduto" class="btn" type="button">💾 Salvar produto + cálculo</button>
+        <button id="btnLimparCampos" class="btn-secondary" type="button">🧹 Limpar campos da tela</button>
+      </div>
+      <div class="footer">
+        Margem &gt;= 60%: verde • 50–59,99%: amarelo • &lt; 50%: vermelho
+      </div>
+    </div>
+
+    <!-- BLOCO HISTÓRICO / RELATÓRIO -->
+    <div class="card">
+      <h2 style="margin-top:0;">Histórico de produtos</h2>
+      <div class="grid">
+        <textarea id="historico" rows="6" readonly placeholder="Nenhum produto salvo ainda."></textarea>
+        <button id="btnRefreshLog" class="btn-secondary" type="button">🔄 Atualizar histórico</button>
+        <button id="btnPdf" class="btn-secondary" type="button">📄 Baixar relatório em PDF</button>
+        <button id="btnWhatsPdf" class="btn-secondary" type="button">📤 Enviar relatório em PDF (WhatsApp)</button>
+        <button id="btnClearLog" class="btn-danger" type="button">🗑️ Limpar histórico</button>
+        <div class="hint">
+          Este histórico é local deste aparelho e armazena <strong>apenas os últimos 50 produtos registrados</strong>,
+          com foto, detalhes e cálculo de custo/margem.
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // --- Utilidades ---
-    const nf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const nf4 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-    const nfPct = new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // ======= Referências aos elementos =======
+    const fotoInput = document.getElementById('fotoInput');
+    const fotoPreview = document.getElementById('fotoPreview');
+    const nomeProduto = document.getElementById('nomeProduto');
+    const detalhesProduto = document.getElementById('detalhesProduto');
+    const erroProduto = document.getElementById('erroProduto');
 
-    function toNum(v){
-      if(typeof v !== 'string') v = String(v ?? '');
-      v = v.trim().replace(/\./g,'').replace(',','.');
-      return v === '' || isNaN(Number(v)) ? NaN : Number(v);
-    }
-
-    function round(n, dec){
-      const f = Math.pow(10, dec);
-      return Math.round((n + Number.EPSILON) * f) / f;
-    }
-
-    // --- Campos ---
     const fob = document.getElementById('fob');
-    const conv = document.getElementById('conv');
+    const conversao = document.getElementById('conversao');
     const fator = document.getElementById('fator');
+    const custo = document.getElementById('custo');
     const pdv = document.getElementById('pdv');
     const impostos = document.getElementById('impostos');
-
-    const custo = document.getElementById('custo');
-    const finalC = document.getElementById('final');
+    const custoFinal = document.getElementById('custoFinal');
     const margem = document.getElementById('margem');
 
-    const fotoInput = document.getElementById('fotoInput');
-    const btnFoto = document.getElementById('btnFoto');
-    const fotoPreview = document.getElementById('fotoPreview');
-    const fotoThumb = document.getElementById('fotoThumb');
-    const btnWhats = document.getElementById('btnWhats');
+    const btnSalvarProduto = document.getElementById('btnSalvarProduto');
+    const btnLimparCampos = document.getElementById('btnLimparCampos');
 
-    let fotoFile = null;
+    const historico = document.getElementById('historico');
+    const btnRefreshLog = document.getElementById('btnRefreshLog');
+    const btnPdf = document.getElementById('btnPdf');
+    const btnWhatsPdf = document.getElementById('btnWhatsPdf');
+    const btnClearLog = document.getElementById('btnClearLog');
 
-    // Restore
-    const SAVED = JSON.parse(localStorage.getItem('calc-custos-v5') || '{}');
-    ['fob','conv','fator','pdv','impostos'].forEach(id => {
-      if(SAVED[id]) document.getElementById(id).value = SAVED[id];
-    });
+    const LOG_KEY = 'calc-produtos-v1';
+    const MAX_REGISTROS = 50;
 
-    function save(){
-      const data = {
-        fob: fob.value,
-        conv: conv.value,
-        fator: fator.value,
-        pdv: pdv.value,
-        impostos: impostos.value
-      };
-      localStorage.setItem('calc-custos-v5', JSON.stringify(data));
+    let fotoDataUrlAtual = null; // guarda a foto reduzida do produto atual
+
+    // ======= Funções auxiliares numéricas =======
+    function parseBR(str){
+      if(!str) return NaN;
+      let s = String(str).trim();
+      s = s.replace(/\s+/g,'');
+      const parts = s.split(',');
+      if(parts.length > 2){
+        const decimal = parts.pop();
+        s = parts.join('') + ',' + decimal;
+      }
+      s = s.replace(/\./g,'');
+      s = s.replace(',', '.');
+      const n = Number(s);
+      return isNaN(n) ? NaN : n;
     }
 
-    // Cálculo + cores da margem
-    function recalc(){
-      save();
-
-      const vFOB = toNum(fob.value);
-      const vCONV = toNum(conv.value);
-      const vFATOR = toNum(fator.value);
-      const vPDV = toNum(pdv.value);
-      const vImpPerc = toNum(impostos.value); // ex.: 28,72 => 28.72
-
-      let vCusto = NaN, vFinal = NaN, vMarg = NaN;
-
-      if(!isNaN(vFOB) && !isNaN(vCONV) && !isNaN(vFATOR)){
-        vCusto = round(vFOB * vCONV * vFATOR, 2); // 2 casas
-      }
-
-      let vImpVal = NaN;
-      if(!isNaN(vPDV) && !isNaN(vImpPerc)){
-        const taxa = vImpPerc / 100; // fração
-        vImpVal = round(vPDV * taxa, 4); // valor monetário, 4 casas
-      }
-
-      if(!isNaN(vCusto) && !isNaN(vImpVal)){
-        vFinal = vCusto + vImpVal; // custo final = custo + (pdv * imposto%)
-      }
-
-      if(!isNaN(vPDV) && !isNaN(vFinal) && vFinal !== 0){
-        vMarg = vPDV / vFinal - 1;
-      }
-
-      custo.value  = isNaN(vCusto) ? '' : nf2.format(vCusto);
-      finalC.value = isNaN(vFinal) ? '' : nf4.format(vFinal);
-      margem.value = isNaN(vMarg)  ? '' : nfPct.format(vMarg);
-
-      // ---- Colorir o campo de margem ----
-      margem.style.color = '#fff';
-      margem.style.backgroundColor = '#0b1522'; // default
-
-      if (!isNaN(vMarg)) {
-        const perc = vMarg * 100; // %
-        if (perc >= 60) {
-          margem.style.backgroundColor = '#15803d'; // verde
-        } else if (perc >= 50 && perc < 60) {
-          margem.style.backgroundColor = '#ca8a04'; // amarelo
-        } else if (perc < 50) {
-          margem.style.backgroundColor = '#b91c1c'; // vermelho
-        }
-      }
+    function formatBR(n, decimals){
+      if(n == null || isNaN(n)) return '';
+      const d = (typeof decimals === 'number') ? decimals : 2;
+      return n.toLocaleString('pt-BR', { minimumFractionDigits:d, maximumFractionDigits:d });
     }
 
-    [fob, conv, fator, pdv, impostos].forEach(el => el.addEventListener('input', recalc));
-    recalc();
+    function limparMargemClasses(){
+      margem.classList.remove('margem-ok','margem-media','margem-baixa');
+    }
 
-    document.getElementById('clear').addEventListener('click', () => {
-      [fob, conv, fator, pdv, impostos].forEach(el => el.value = '');
-      localStorage.removeItem('calc-custos-v5');
-      fotoFile = null;
-      fotoPreview.style.display = 'none';
-      recalc();
-    });
+    // ======= Redimensionar imagem (para base64 menor) =======
+    function reduzirImagem(arquivo, maxLargura=600){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            if(w > maxLargura){
+              const ratio = maxLargura / w;
+              w = maxLargura;
+              h = h * ratio;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 80% qualidade
+            resolve(dataUrl);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(arquivo);
+      });
+    }
 
-    // Foto
-    btnFoto.addEventListener('click', () => {
-      fotoInput.click();
-    });
-
-    fotoInput.addEventListener('change', () => {
-      const file = fotoInput.files && fotoInput.files[0];
-      if(file){
-        fotoFile = file;
-        const url = URL.createObjectURL(file);
-        fotoThumb.src = url;
-        fotoPreview.style.display = 'flex';
-      } else {
-        fotoFile = null;
+    fotoInput.addEventListener('change', async () => {
+      erroProduto.textContent = '';
+      const arq = fotoInput.files && fotoInput.files[0];
+      if(!arq){
+        fotoDataUrlAtual = null;
         fotoPreview.style.display = 'none';
+        fotoPreview.src = '';
+        return;
+      }
+      try{
+        const reduzida = await reduzirImagem(arq, 600);
+        fotoDataUrlAtual = reduzida;
+        fotoPreview.src = reduzida;
+        fotoPreview.style.display = 'block';
+      }catch(e){
+        console.error(e);
+        erroProduto.textContent = 'Não foi possível carregar a foto. Tente novamente.';
+        fotoDataUrlAtual = null;
+        fotoPreview.style.display = 'none';
+        fotoPreview.src = '';
       }
     });
 
-    // Montar texto do cálculo
-    function buildCalcText(){
-      const linha = (label, val) => `${label}: ${val || '-'}`;
-      const txt = [
-        '📦 Cálculo de Produto',
-        linha('FOB', fob.value),
-        linha('CONVERSÃO', conv.value),
-        linha('FATOR', fator.value),
-        linha('CUSTO', custo.value),
-        linha('PDV', pdv.value),
-        linha('IMPOSTOS (%)', impostos.value),
-        linha('CUSTO FINAL', finalC.value),
-        linha('MARGEM', margem.value)
-      ].join('\n');
-      return txt;
+    // ======= Recalcular custos/margem =======
+    function recalcular(){
+      const vFob = parseBR(fob.value);
+      const vConv = parseBR(conversao.value);
+      const vFator = parseBR(fator.value);
+      const vPdv = parseBR(pdv.value);
+      const vImpPerc = parseBR(impostos.value);
+
+      let temBase = !isNaN(vFob) && !isNaN(vConv) && !isNaN(vFator);
+      let temPdv = !isNaN(vPdv) && !isNaN(vImpPerc);
+
+      let vCusto = NaN;
+      let vCustoFinal = NaN;
+      let vMargem = NaN;
+
+      if(temBase){
+        vCusto = vFob * vConv * vFator;
+        custo.value = formatBR(vCusto, 4);
+      } else {
+        custo.value = '';
+      }
+
+      if(temBase && temPdv){
+        vCustoFinal = vCusto + (vPdv * (vImpPerc/100));
+        custoFinal.value = formatBR(vCustoFinal, 4);
+        if(vCustoFinal > 0){
+          vMargem = (vPdv / vCustoFinal) - 1;
+          const perc = vMargem * 100;
+          margem.value = formatBR(perc, 2) + ' %';
+          limparMargemClasses();
+          if(perc >= 60){
+            margem.classList.add('margem-ok');
+          }else if(perc >= 50){
+            margem.classList.add('margem-media');
+          }else{
+            margem.classList.add('margem-baixa');
+          }
+        } else {
+          margem.value = '';
+          limparMargemClasses();
+        }
+      } else {
+        custoFinal.value = '';
+        margem.value = '';
+        limparMargemClasses();
+      }
     }
 
-    // Enviar para WhatsApp
-    btnWhats.addEventListener('click', async () => {
-      const msg = buildCalcText();
+    [fob,conversao,fator,pdv,impostos].forEach(el => {
+      el.addEventListener('input', recalcular);
+    });
 
-      // Tenta Web Share API com arquivo (se suportado)
-      if (navigator.share) {
-        try {
-          if (fotoFile && navigator.canShare && navigator.canShare({ files: [fotoFile] })) {
-            await navigator.share({
-              text: msg,
-              files: [fotoFile]
-            });
-            return;
-          } else {
-            await navigator.share({ text: msg });
-            return;
+    // ======= Log local =======
+    function carregarLog(){
+      try{
+        return JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+      }catch(e){
+        return [];
+      }
+    }
+
+    function salvarLog(log){
+      localStorage.setItem(LOG_KEY, JSON.stringify(log));
+    }
+
+    function formatarData(iso){
+      if(!iso) return '';
+      const d = new Date(iso);
+      if(isNaN(d)) return '';
+      const pad = n => String(n).padStart(2,'0');
+      return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() +
+             ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function atualizarHistoricoTexto(){
+      const log = carregarLog();
+      if(!log.length){
+        historico.value = 'Nenhum produto salvo ainda.';
+        return;
+      }
+      const linhas = log.map((r,idx) => {
+        const dataStr = formatarData(r.dataIso);
+        const margemStr = (typeof r.margemPerc === 'number')
+          ? formatBR(r.margemPerc, 2) + ' %'
+          : '-';
+        return '[' + dataStr + '] ' +
+               (r.nome || 'Produto sem nome') +
+               ' | Margem: ' + margemStr;
+      });
+      historico.value = linhas.join('\n');
+    }
+
+    btnRefreshLog.addEventListener('click', atualizarHistoricoTexto);
+
+    btnClearLog.addEventListener('click', () => {
+      const ok = confirm('Tem certeza que deseja limpar todo o histórico de produtos deste aparelho?');
+      if(!ok) return;
+      salvarLog([]);
+      atualizarHistoricoTexto();
+      erroProduto.textContent = '';
+    });
+
+    // ======= Salvar produto + cálculo =======
+    btnSalvarProduto.addEventListener('click', () => {
+      erroProduto.textContent = '';
+
+      // Garante que o cálculo está atualizado
+      recalcular();
+
+      const nome = nomeProduto.value.trim();
+      const detalhes = detalhesProduto.value.trim();
+      const vFob = parseBR(fob.value);
+      const vConv = parseBR(conversao.value);
+      const vFator = parseBR(fator.value);
+      const vPdv = parseBR(pdv.value);
+      const vImpPerc = parseBR(impostos.value);
+      const vCusto = parseBR(custo.value);
+      const vCustoFinal = parseBR(custoFinal.value);
+      const vMargemPerc = parseBR(margem.value.replace('%',''));
+
+      // Regras mínimas para salvar
+      if(!fotoDataUrlAtual){
+        erroProduto.textContent = 'Tire a foto do produto antes de salvar.';
+        return;
+      }
+      if(!nome){
+        erroProduto.textContent = 'Informe um nome para o produto.';
+        return;
+      }
+      if(isNaN(vFob) || isNaN(vConv) || isNaN(vFator)){
+        erroProduto.textContent = 'Preencha FOB, Conversão e Fator para calcular o custo.';
+        return;
+      }
+      if(isNaN(vPdv) || isNaN(vImpPerc)){
+        erroProduto.textContent = 'Preencha PDV e Impostos (%) para calcular custo final e margem.';
+        return;
+      }
+      if(isNaN(vCusto) || isNaN(vCustoFinal) || isNaN(vMargemPerc)){
+        erroProduto.textContent = 'Não foi possível calcular custo/margem. Verifique os valores digitados.';
+        return;
+      }
+
+      const agora = new Date();
+      const id = 'P' + agora.getTime().toString();
+
+      const registro = {
+        id,
+        dataIso: agora.toISOString(),
+        nome,
+        detalhes,
+        fob: vFob,
+        conversao: vConv,
+        fator: vFator,
+        custo: vCusto,
+        pdv: vPdv,
+        impostosPerc: vImpPerc,
+        custoFinal: vCustoFinal,
+        margemPerc: vMargemPerc,
+        fotoDataUrl: fotoDataUrlAtual
+      };
+
+      let log = carregarLog();
+      log.unshift(registro);
+      if(log.length > MAX_REGISTROS){
+        log = log.slice(0, MAX_REGISTROS);
+      }
+      salvarLog(log);
+      atualizarHistoricoTexto();
+
+      erroProduto.textContent = 'Produto salvo com sucesso.';
+      setTimeout(() => { if(erroProduto.textContent === 'Produto salvo com sucesso.') erroProduto.textContent = ''; }, 2000);
+    });
+
+    // ======= Limpar campos da tela (mas não o histórico) =======
+    btnLimparCampos.addEventListener('click', () => {
+      fotoInput.value = '';
+      fotoDataUrlAtual = null;
+      fotoPreview.style.display = 'none';
+      fotoPreview.src = '';
+
+      nomeProduto.value = '';
+      detalhesProduto.value = '';
+      [fob,conversao,fator,pdv,impostos,custo,custoFinal,margem].forEach(el => el.value = '');
+      limparMargemClasses();
+      erroProduto.textContent = '';
+    });
+
+    // ======= PDF do relatório =======
+    async function gerarPdfBlobDoLog(){
+      const log = carregarLog();
+      if(!log.length){
+        erroProduto.textContent = 'Nenhum produto no histórico para gerar PDF.';
+        return null;
+      }
+      if(!window.jspdf || !window.jspdf.jsPDF){
+        erroProduto.textContent = 'Biblioteca de PDF não carregada (jsPDF). Verifique a conexão na primeira vez.';
+        return null;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'p', unit:'mm', format:'a4'});
+
+      doc.setFontSize(14);
+      doc.text('RELATORIO DE PRODUTOS - CALCULADORA DE CUSTOS', 105, 12, { align: 'center' });
+
+      let y = 20;
+      const linha = 5;
+      const larguraPagina = 210;
+      const margemEsq = 10;
+      const larguraTexto = larguraPagina - 2*margemEsq;
+
+      doc.setFontSize(9);
+
+      for(const r of log){
+        if(y > 260){
+          doc.addPage();
+          y = 15;
+        }
+
+        const dataStr = formatarData(r.dataIso);
+        doc.setFont(undefined, 'bold');
+        doc.text((r.nome || 'Produto sem nome'), margemEsq, y);
+        doc.setFont(undefined, 'normal');
+        doc.text('Data: ' + dataStr, margemEsq, y + linha);
+
+        y += linha*2;
+
+        if(r.fotoDataUrl){
+          try{
+            const imgProps = doc.getImageProperties(r.fotoDataUrl);
+            const imgWidthMax = 60;
+            const imgHeight = (imgProps.height * imgWidthMax) / imgProps.width;
+            if(y + imgHeight > 280){
+              doc.addPage();
+              y = 20;
+            }
+            doc.addImage(r.fotoDataUrl, 'JPEG', margemEsq, y, imgWidthMax, imgHeight);
+            // bloco de texto ao lado da foto
+            const xTexto = margemEsq + imgWidthMax + 4;
+            const detalhes = r.detalhes || '';
+            const wrapDetalhes = doc.splitTextToSize(detalhes, larguraTexto - imgWidthMax - 4);
+            doc.text(wrapDetalhes, xTexto, y + 3);
+            y += Math.max(imgHeight, wrapDetalhes.length * (linha-1)) + 2*linha;
+          }catch(e){
+            const detalhes = r.detalhes || '';
+            const wrapDetalhes = doc.splitTextToSize(detalhes, larguraTexto);
+            doc.text(wrapDetalhes, margemEsq, y);
+            y += wrapDetalhes.length * linha + linha;
           }
-        } catch (e) {
-          console.log('Share cancelado ou falhou, tentando wa.me', e);
+        } else {
+          const detalhes = r.detalhes || '';
+          const wrapDetalhes = doc.splitTextToSize(detalhes, larguraTexto);
+          doc.text(wrapDetalhes, margemEsq, y);
+          y += wrapDetalhes.length * linha + linha;
+        }
+
+        const linhasTabela = [
+          'FOB: ' + formatBR(r.fob,2) + ' | Conversao: ' + formatBR(r.conversao,4) + ' | Fator: ' + formatBR(r.fator,4),
+          'Custo: ' + formatBR(r.custo,4) + ' | PDV: ' + formatBR(r.pdv,2),
+          'Impostos: ' + formatBR(r.impostosPerc,2) + ' % | Custo final: ' + formatBR(r.custoFinal,4),
+          'Margem: ' + formatBR(r.margemPerc,2) + ' %'
+        ];
+        for(const linhaTexto of linhasTabela){
+          if(y > 280){
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(linhaTexto, margemEsq, y);
+          y += linha;
+        }
+
+        y += linha;
+        if(y > 280){
+          doc.addPage();
+          y = 20;
         }
       }
 
-      // Fallback: abrir link do WhatsApp com texto (sem imagem)
-      const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-      window.open(url, '_blank');
+      const blob = doc.output('blob');
+      return blob;
+    }
+
+    btnPdf.addEventListener('click', async () => {
+      const blob = await gerarPdfBlobDoLog();
+      if(!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'relatorio_produtos_calculadora_custos.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     });
 
-    // PWA
+    btnWhatsPdf.addEventListener('click', async () => {
+      const blob = await gerarPdfBlobDoLog();
+      if(!blob) return;
+
+      if(!navigator.share){
+        erroProduto.textContent = 'Compartilhamento de arquivos não é suportado neste navegador/aparelho.';
+        return;
+      }
+
+      const file = new File([blob], 'relatorio_produtos_calculadora_custos.pdf', { type: 'application/pdf' });
+
+      if(navigator.canShare && !navigator.canShare({ files: [file] })){
+        erroProduto.textContent = 'Este aparelho não suporta compartilhar PDF pelo navegador.';
+        return;
+      }
+
+      try{
+        await navigator.share({
+          files: [file],
+          text: 'Relatorio de produtos - Calculadora de Custos'
+        });
+      }catch(e){
+        console.error(e);
+      }
+    });
+
+    // Atualiza histórico ao abrir
+    atualizarHistoricoTexto();
+
+    // Service Worker para PWA offline
     if('serviceWorker' in navigator){
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js');

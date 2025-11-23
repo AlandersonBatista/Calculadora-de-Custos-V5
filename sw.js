@@ -1,4 +1,4 @@
-const CACHE = 'custos-v5';
+const CACHE = 'calc-custos-v5-fotos';
 const ASSETS = [
   './',
   './index.html',
